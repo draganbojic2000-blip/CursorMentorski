@@ -1,0 +1,322 @@
+:root {
+  --bg: #0f1419;
+  --surface: #1a2332;
+  --surface-hover: #243044;
+  --text: #e6edf3;
+  --text-muted: #8b949e;
+  --primary: #58a6ff;
+  --primary-hover: #79b8ff;
+  --prihod: #3fb950;
+  --rashod: #f85149;
+  --border: #30363d;
+  --radius: 10px;
+  --font: 'DM Sans', -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+.app {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem 0;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.card h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: var(--text);
+}
+
+/* Form */
+.section-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.section-form label span {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.section-form input,
+.section-form select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+.section-form input:focus,
+.section-form select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.label-full {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 560px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.btn {
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+}
+
+.btn-outline:hover {
+  background: rgba(88, 166, 255, 0.15);
+}
+
+.btn-small {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+/* Filter */
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  align-items: flex-end;
+}
+
+.filter-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.filter-row span {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.filter-row select {
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+  min-width: 120px;
+}
+
+/* Rezime */
+.rezime {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.rezime-item {
+  padding: 1rem;
+  border-radius: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.rezime-item .label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.rezime-item .vrednost {
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.rezime-item.prihod .vrednost { color: var(--prihod); }
+.rezime-item.rashod .vrednost { color: var(--rashod); }
+.rezime-item.bilans .vrednost { color: var(--text); }
+
+.rezime-item.bilans .vrednost.negativno { color: var(--rashod); }
+.rezime-item.bilans .vrednost.pozitivno { color: var(--prihod); }
+
+@media (max-width: 480px) {
+  .rezime {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Lista transakcija */
+.transakcije-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.transakcije-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.lista-transakcija {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.lista-transakcija li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.65rem 0.85rem;
+  border-radius: 6px;
+  margin-bottom: 0.35rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.lista-transakcija li:hover {
+  background: var(--surface-hover);
+}
+
+.lista-transakcija .info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.lista-transakcija .datum-str {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.lista-transakcija .kategorija-opis {
+  font-size: 0.95rem;
+}
+
+.lista-transakcija .iznos {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.lista-transakcija .iznos.prihod { color: var(--prihod); }
+.lista-transakcija .iznos.rashod { color: var(--rashod); }
+
+.lista-transakcija .akcije {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: 0.5rem;
+}
+
+.lista-transakcija button.obrisi {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.lista-transakcija button.obrisi:hover {
+  color: var(--rashod);
+}
+
+.prazno {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 1.5rem;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.prazno.sakriveno {
+  display: none;
+}
+
+/* Footer */
+.footer {
+  margin-top: auto;
+  padding-top: 1.5rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.footer p { margin: 0; }
