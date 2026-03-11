@@ -3,87 +3,108 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mentorski — Poveži se sa mentorom</title>
+  <title>Lične finansije — Praćenje prihoda i rashoda</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="header">
-    <nav class="nav">
-      <a href="#" class="logo">Mentorski</a>
-      <ul class="nav-links">
-        <li><a href="#kako-radi">Kako radi</a></li>
-        <li><a href="#mentori">Mentori</a></li>
-        <li><a href="#kontakt">Kontakt</a></li>
-      </ul>
-      <button class="btn btn-outline" id="btn-login">Prijava</button>
-    </nav>
-  </header>
+  <div class="app">
+    <header class="header">
+      <h1>💰 Lične finansije</h1>
+      <p class="subtitle">Praćenje prihoda i rashoda — mesečno i godišnje</p>
+    </header>
 
-  <main>
-    <section class="hero">
-      <div class="hero-content">
-        <h1>Pronađi svog <span class="highlight">mentora</span></h1>
-        <p class="hero-text">Povežimo te sa iskusnim mentorima koji će ti pomoći da napreduješ u karijeri, učenju ili projektu.</p>
-        <div class="hero-actions">
-          <button class="btn btn-primary" id="btn-find-mentor">Pronađi mentora</button>
-          <button class="btn btn-secondary" id="btn-become-mentor">Postani mentor</button>
+    <main class="main">
+      <!-- Forma za dodavanje transakcije -->
+      <section class="card section-form">
+        <h2>Dodaj transakciju</h2>
+        <form id="form-transakcija">
+          <div class="form-row">
+            <label>
+              <span>Tip</span>
+              <select id="tip" name="tip" required>
+                <option value="prihod">Prihod</option>
+                <option value="rashod">Rashod</option>
+              </select>
+            </label>
+            <label>
+              <span>Iznos (RSD)</span>
+              <input type="number" id="iznos" name="iznos" required min="0" step="0.01" placeholder="npr. 50000">
+            </label>
+            <label>
+              <span>Datum</span>
+              <input type="date" id="datum" name="datum" required>
+            </label>
+          </div>
+          <div class="form-row">
+            <label class="label-full">
+              <span>Kategorija</span>
+              <input type="text" id="kategorija" name="kategorija" placeholder="npr. Plata, Hrana, Stanarina...">
+            </label>
+            <label class="label-full">
+              <span>Opis (opciono)</span>
+              <input type="text" id="opis" name="opis" placeholder="Kratak opis">
+            </label>
+          </div>
+          <button type="submit" class="btn btn-primary">Dodaj</button>
+        </form>
+      </section>
+
+      <!-- Filter i pregled -->
+      <section class="card section-pregled">
+        <h2>Pregled</h2>
+        <div class="filter-row">
+          <label>
+            <span>Mesec</span>
+            <select id="filter-mesec"></select>
+          </label>
+          <label>
+            <span>Godina</span>
+            <select id="filter-godina"></select>
+          </label>
+          <label class="view-toggle">
+            <span>Prikaz</span>
+            <select id="view-mode">
+              <option value="mesec">Mesečni</option>
+              <option value="godina">Godišnji</option>
+            </select>
+          </label>
         </div>
-      </div>
-      <div class="hero-visual">
-        <div class="floating-card card-1">💡 Saveti</div>
-        <div class="floating-card card-2">📈 Napredak</div>
-        <div class="floating-card card-3">🤝 Podrška</div>
-      </div>
-    </section>
 
-    <section class="section" id="kako-radi">
-      <h2>Kako radi</h2>
-      <div class="steps">
-        <article class="step">
-          <span class="step-num">1</span>
-          <h3>Registruj se</h3>
-          <p>Kreiraj nalog i navedi oblast u kojoj želiš podršku.</p>
-        </article>
-        <article class="step">
-          <span class="step-num">2</span>
-          <h3>Izaberi mentora</h3>
-          <p>Pregledaj profile mentora i zakaži prvi razgovor.</p>
-        </article>
-        <article class="step">
-          <span class="step-num">3</span>
-          <h3>Rast zajedno</h3>
-          <p>Redovni sastanci, ciljevi i praćenje napretka.</p>
-        </article>
-      </div>
-    </section>
+        <!-- Rezime (mesec/godina) -->
+        <div class="rezime" id="rezime">
+          <div class="rezime-item prihod">
+            <span class="label">Ukupno prihodi</span>
+            <span class="vrednost" id="ukupno-prihodi">0 RSD</span>
+          </div>
+          <div class="rezime-item rashod">
+            <span class="label">Ukupno rashodi</span>
+            <span class="vrednost" id="ukupno-rashodi">0 RSD</span>
+          </div>
+          <div class="rezime-item bilans">
+            <span class="label">Bilans</span>
+            <span class="vrednost" id="bilans">0 RSD</span>
+          </div>
+        </div>
 
-    <section class="section section-alt" id="mentori">
-      <h2>Popularne oblasti</h2>
-      <div class="categories" id="categories">
-        <!-- Popunjava JS -->
-      </div>
-    </section>
+        <!-- Lista transakcija -->
+        <div class="transakcije-header">
+          <h3>Transakcije</h3>
+          <button type="button" class="btn btn-small btn-outline" id="btn-izvezi">Izvezi CSV</button>
+        </div>
+        <ul class="lista-transakcija" id="lista-transakcija">
+          <!-- Popunjava JS -->
+        </ul>
+        <p class="prazno" id="prazno-poruka">Nema transakcija za izabrani period.</p>
+      </section>
+    </main>
 
-    <section class="section" id="kontakt">
-      <h2>Kontakt</h2>
-      <form class="contact-form" id="contact-form">
-        <label for="name">Ime</label>
-        <input type="text" id="name" name="name" required placeholder="Tvoje ime">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" required placeholder="email@primer.rs">
-        <label for="message">Poruka</label>
-        <textarea id="message" name="message" rows="4" placeholder="Kako možemo da pomognemo?"></textarea>
-        <button type="submit" class="btn btn-primary">Pošalji</button>
-      </form>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <p>© 2025 Mentorski. Napravljeno sa 💙 za učenike i mentore.</p>
-  </footer>
+    <footer class="footer">
+      <p>Podaci se čuvaju lokalno u pregledaču. Nema servera.</p>
+    </footer>
+  </div>
 
   <script src="app.js"></script>
 </body>
