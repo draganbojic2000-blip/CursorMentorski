@@ -1,0 +1,10 @@
+# Netlify – statički sajt (bez build koraka)
+[build]
+  publish = "."
+  command = ""
+
+# SPA-style: sve rute vode na index.html (ako kasnije dodaš rutiranje)
+# [[redirects]]
+#   from = "/*"
+#   to = "/index.html"
+#   status = 200
