@@ -70,6 +70,18 @@ body {
 }
 
 /* Form */
+.form-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.form-header-row .currency-filter {
+  max-width: 180px;
+}
+
 .section-form label {
   display: flex;
   flex-direction: column;
@@ -235,6 +247,8 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.75rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--border);
 }
 
 .transakcije-header h3 {
@@ -247,6 +261,9 @@ body {
   list-style: none;
   padding: 0;
   margin: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .lista-transakcija li {
@@ -254,10 +271,12 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 0.65rem 0.85rem;
-  border-radius: 6px;
-  margin-bottom: 0.35rem;
   background: var(--bg);
-  border: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.lista-transakcija li:last-child {
+  border-bottom: none;
 }
 
 .lista-transakcija li:hover {

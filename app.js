@@ -125,6 +125,23 @@
     return { prihodi, rashodi, bilans: prihodi - rashodi };
   }
 
+  function formatirajBrojCSV(x) {
+    return new Intl.NumberFormat('sr-RS', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(x);
+  }
+
+  // Locale 407 = nemački (tačka hiljade, zarez decimale) – isto kao u Format Cells uzoru
+  const EXCEL_DATUM_FORMAT = '[$-407]dd.mm.yyyy';
+  const EXCEL_BROJ_FORMAT = '[$-407]#.##0,00';
+  const SIVA_POZADINA = 'FFE5E5E5';
+  const SIVA_ZAGLAVLJE = 'FFD0D0D0';
+  const TANKA_LINIJA = { style: 'thin' };
+  const EXCEL_BOJA_PRIHOD = 'FF2E7D32';
+  const EXCEL_BOJA_RASHOD = 'FFC62828';
+  const EXCEL_BOJA_SALDO = 'FF1565C0';
+
   function formatirajIznos(x) {
     const valuta = getValuta();
     return new Intl.NumberFormat('sr-RS', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(x) + ' ' + valuta;
@@ -206,11 +223,20 @@
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     const transakcije = getTransakcije();
+    const trenutniRezime = izracunajRezime(transakcije);
+    const trenutniBilans = trenutniRezime.bilans;
+
+    const iznosUnosa = parseFloat(iznosInput.value) || 0;
+    if (tipSelect.value === 'rashod' && iznosUnosa > trenutniBilans) {
+      alert('Ne možete uneti rashod veći od trenutnog salda. Prvo unesite prihod.');
+      return;
+    }
+
     const id = String(Date.now());
     const nova = {
       id,
       tip: tipSelect.value,
-      iznos: parseFloat(iznosInput.value) || 0,
+      iznos: iznosUnosa,
       datum: datumInput.value,
       kategorija: (kategorijaInput.value || '').trim(),
       opis: (opisInput.value || '').trim()
@@ -255,39 +281,170 @@
     });
   }
 
-  btnIzvezi.addEventListener('click', function () {
+  const kategorijaSelect = document.getElementById('kategorija');
+  if (kategorijaSelect && tipSelect) {
+    kategorijaSelect.addEventListener('change', function () {
+      const kategorija = (this.value || '').trim();
+      if (kategorija === 'Plata' || kategorija === 'Akontacija') {
+        tipSelect.value = 'prihod';
+      } else if (kategorija) {
+        tipSelect.value = 'rashod';
+      }
+    });
+  }
+
+  btnIzvezi.addEventListener('click', async function () {
     const transakcije = filtriraneTransakcije().sort((a, b) => new Date(a.datum) - new Date(b.datum));
     if (transakcije.length === 0) {
       alert('Nema transakcija za izvoz.');
       return;
     }
+    if (typeof ExcelJS === 'undefined') {
+      alert('Excel izvoz trenutno nije dostupan (ExcelJS biblioteka nije učitana).');
+      return;
+    }
+
     const valuta = getValuta();
     const mode = viewMode.value;
     let periodOpis = '';
-    if (mode === 'godina') {
-      periodOpis = filterGodina.value || '';
-    } else if (mode === 'mesec') {
-      periodOpis = `${filterGodina.value || ''}-${filterMesec.value || ''}`;
-    } else if (mode === 'dan') {
-      periodOpis = filterDatum?.value || '';
+    if (mode === 'godina') periodOpis = filterGodina.value || '';
+    else if (mode === 'mesec') periodOpis = `${filterGodina.value || ''}-${filterMesec.value || ''}`;
+    else if (mode === 'dan') periodOpis = filterDatum?.value || '';
+
+    const rezime = izracunajRezime(transakcije);
+
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Finansije', { views: [{ rightToLeft: false }] });
+
+    const periodTip = mode === 'dan' ? 'Dnevni' : (mode === 'mesec' ? 'Mesečni' : 'Godišnji');
+    const periodZaglavlje = periodTip + (periodOpis ? ' — ' + periodOpis : '');
+
+    ws.getCell(1, 1).value = 'Lične finansije Dragan';
+    ws.getCell(2, 1).value = 'Period';
+    ws.getCell(2, 2).value = periodZaglavlje || 'Svi zapisi';
+    ws.getCell(3, 1).value = 'Valuta';
+    ws.getCell(3, 2).value = valuta;
+
+    ws.getCell(1, 1).font = Object.assign({}, ws.getCell(1, 1).font || {}, { bold: true });
+    ws.getCell(2, 1).font = Object.assign({}, ws.getCell(2, 1).font || {}, { bold: true });
+    ws.getCell(2, 2).font = Object.assign({}, ws.getCell(2, 2).font || {}, { bold: true });
+    ws.getCell(3, 1).font = Object.assign({}, ws.getCell(3, 1).font || {}, { bold: true });
+    ws.getCell(3, 2).font = Object.assign({}, ws.getCell(3, 2).font || {}, { bold: true });
+
+    const headerRow = 5;
+    ws.getCell(headerRow, 1).value = 'Datum';
+    ws.getCell(headerRow, 2).value = 'Kategorija';
+    ws.getCell(headerRow, 3).value = 'Opis';
+    ws.getCell(headerRow, 4).value = 'Prihod';
+    ws.getCell(headerRow, 5).value = 'Rashod';
+    ws.getCell(headerRow, 6).value = 'Saldo';
+
+    let tekućiSaldo = 0;
+    let dataRow = headerRow + 1;
+    transakcije.forEach(t => {
+      const iznos = parseFloat(t.iznos) || 0;
+      let prihod = null;
+      let rashod = null;
+      if (t.tip === 'prihod') {
+        prihod = iznos;
+        tekućiSaldo += iznos;
+      } else {
+        rashod = iznos;
+        tekućiSaldo -= iznos;
+      }
+
+      // Datum kao gotov tekst u formatu dd.mm.yyyy
+      ws.getCell(dataRow, 1).value = formatirajDatum(t.datum);
+
+      ws.getCell(dataRow, 2).value = t.kategorija || '';
+      ws.getCell(dataRow, 3).value = t.opis || '';
+
+      // Iznosi kao tekst u formatu #.##0,00
+      ws.getCell(dataRow, 4).value = prihod !== null ? formatirajBrojCSV(prihod) : '';
+      ws.getCell(dataRow, 5).value = rashod !== null ? formatirajBrojCSV(rashod) : '';
+      ws.getCell(dataRow, 6).value = formatirajBrojCSV(tekućiSaldo);
+
+      dataRow++;
+    });
+
+    const rezimeRow = dataRow + 1;
+    ws.getCell(rezimeRow, 3).value = 'Ukupan bilans';
+    ws.getCell(rezimeRow, 6).value = formatirajBrojCSV(rezime.bilans);
+
+    const lastRow = rezimeRow;
+    const lastCol = 6;
+
+    // Širine kolona da se svi podaci vide u punom obliku
+    ws.getColumn(1).width = 14;  // Datum (dd.mm.yyyy.)
+    ws.getColumn(2).width = 18;  // Kategorija
+    ws.getColumn(3).width = 28;  // Opis
+    ws.getColumn(4).width = 14;  // Prihod
+    ws.getColumn(5).width = 14;  // Rashod
+    ws.getColumn(6).width = 14;  // Saldo
+
+    for (let r = headerRow; r <= lastRow; r++) {
+      const isSiviRed = r > headerRow && (r - headerRow) % 2 === 0;
+      for (let c = 1; c <= lastCol; c++) {
+        const cell = ws.getCell(r, c);
+        cell.border = {
+          top: TANKA_LINIJA,
+          left: TANKA_LINIJA,
+          bottom: TANKA_LINIJA,
+          right: TANKA_LINIJA
+        };
+
+        // Poravnanje: naslovna linija sve centrirano; datum centriran, iznosi desno
+        if (r === headerRow) {
+          cell.alignment = Object.assign({}, cell.alignment || {}, { horizontal: 'center' });
+        } else if (c === 1) {
+          cell.alignment = Object.assign({}, cell.alignment || {}, { horizontal: 'center' });
+        } else if (c === 4 || c === 5 || c === 6) {
+          cell.alignment = Object.assign({}, cell.alignment || {}, { horizontal: 'right' });
+        }
+
+        // Zaglavlje bold, svetlo siva pozadina (tamnija od redova u tabeli); naslovi Prihod, Rashod, Saldo crni
+        if (r === headerRow) {
+          cell.font = Object.assign({}, cell.font || {}, { bold: true });
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: SIVA_ZAGLAVLJE } };
+          if (c === 4 || c === 5 || c === 6) {
+            cell.font = Object.assign({}, cell.font || {}, { color: { argb: 'FF000000' } });
+          }
+        }
+
+        // Boje iznosa (samo podaci, ne zaglavlje): prihod zelena, rashod crvena, saldo tamno plava (bez bold)
+        if (r !== headerRow) {
+          if (c === 4) {
+            cell.font = Object.assign({}, cell.font || {}, { color: { argb: EXCEL_BOJA_PRIHOD } });
+          } else if (c === 5) {
+            cell.font = Object.assign({}, cell.font || {}, { color: { argb: EXCEL_BOJA_RASHOD } });
+          } else if (c === 6) {
+            cell.font = Object.assign({}, cell.font || {}, { color: { argb: EXCEL_BOJA_SALDO } });
+          }
+        }
+
+        // Iznos ukupnog salda (red „Ukupan bilans”, kolona Saldo) — bold
+        if (r === rezimeRow && c === 6) {
+          cell.font = Object.assign({}, cell.font || {}, { bold: true });
+        }
+
+        // Svaki drugi red blago sivi
+        if (isSiviRed) {
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: SIVA_POZADINA } };
+        }
+      }
     }
 
-    const header = 'Datum,Tip,Kategorija,Opis,Iznos,Valuta,Period';
-    const csv = [header, ...transakcije.map(t => [
-      t.datum,
-      t.tip,
-      t.kategorija,
-      t.opis,
-      t.iznos,
-      valuta,
-      periodOpis
-    ].map(x => `"${String(x ?? '').replace(/"/g, '""')}"`).join(','))].join('\r\n');
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `finansije-${filterGodina.value}${filterMesec.value ? '-' + filterMesec.value : ''}.csv`;
-    a.click();
-    URL.revokeObjectURL(a.href);
+    try {
+      const buffer = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `finansije-${filterGodina.value || 'sve'}${filterMesec.value ? '-' + filterMesec.value : ''}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (err) {
+      alert('Greška pri izvozu u Excel: ' + (err && err.message ? err.message : 'nepoznato'));
+    }
   });
 
   // Inicijalizacija

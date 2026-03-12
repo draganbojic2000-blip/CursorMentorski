@@ -19,7 +19,18 @@
     <main class="main">
       <!-- Forma za dodavanje transakcije -->
       <section class="card section-form">
-        <h2>Dodaj transakciju</h2>
+        <div class="form-header-row">
+          <h2>Dodaj transakciju</h2>
+          <label class="currency-filter">
+            <span>Valuta</span>
+            <select id="valuta">
+              <option value="RSD">Srpski dinar (RSD)</option>
+              <option value="EUR">Euro (EUR)</option>
+              <option value="USD">Američki dolar (USD)</option>
+              <option value="CHF">Švajcarski franak (CHF)</option>
+            </select>
+          </label>
+        </div>
         <form id="form-transakcija">
           <div class="form-row">
             <label>
@@ -41,7 +52,18 @@
           <div class="form-row">
             <label class="label-full">
               <span>Kategorija</span>
-              <input type="text" id="kategorija" name="kategorija" placeholder="npr. Plata, Hrana, Stanarina...">
+              <select id="kategorija" name="kategorija">
+                <option value="">— Izaberi kategoriju —</option>
+                <option value="Plata">Plata</option>
+                <option value="Akontacija">Akontacija</option>
+                <option value="Struja">Struja</option>
+                <option value="Voda">Voda</option>
+                <option value="SON">SON</option>
+                <option value="MAXI">MAXI</option>
+                <option value="IDEA">IDEA</option>
+                <option value="TEMPO">TEMPO</option>
+                <option value="RODA">RODA</option>
+              </select>
             </label>
             <label class="label-full">
               <span>Opis (opciono)</span>
@@ -76,15 +98,6 @@
             <span>Datum</span>
             <input type="date" id="filter-datum">
           </label>
-          <label class="currency-filter">
-            <span>Valuta</span>
-            <select id="valuta">
-              <option value="RSD">Srpski dinar (RSD)</option>
-              <option value="EUR">Euro (EUR)</option>
-              <option value="USD">Američki dolar (USD)</option>
-              <option value="CHF">Švajcarski franak (CHF)</option>
-            </select>
-          </label>
         </div>
 
         <!-- Rezime (mesec/godina) -->
@@ -106,7 +119,7 @@
         <!-- Lista transakcija -->
         <div class="transakcije-header">
           <h3>Transakcije</h3>
-          <button type="button" class="btn btn-small btn-outline" id="btn-izvezi">Izvezi CSV</button>
+          <button type="button" class="btn btn-small btn-outline" id="btn-izvezi">Izvezi u Excel</button>
         </div>
         <ul class="lista-transakcija" id="lista-transakcija">
           <!-- Popunjava JS -->
@@ -120,6 +133,7 @@
     </footer>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
