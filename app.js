@@ -1,5 +1,6 @@
 (function () {
   const STORAGE_KEY = 'licne-finansije-transakcije';
+  const CURRENCY_KEY = 'licne-finansije-valuta';
 
   const form = document.getElementById('form-transakcija');
   const tipSelect = document.getElementById('tip');
@@ -10,6 +11,9 @@
   const filterMesec = document.getElementById('filter-mesec');
   const filterGodina = document.getElementById('filter-godina');
   const viewMode = document.getElementById('view-mode');
+  const filterDatum = document.getElementById('filter-datum');
+  const labelFilterDan = document.getElementById('label-filter-dan');
+  const valutaSelect = document.getElementById('valuta');
   const ukupnoPrihodiEl = document.getElementById('ukupno-prihodi');
   const ukupnoRashodiEl = document.getElementById('ukupno-rashodi');
   const bilansEl = document.getElementById('bilans');
@@ -32,9 +36,33 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
   }
 
+  function getValuta() {
+    return valutaSelect?.value || 'RSD';
+  }
+
+  function ucitajValutu() {
+    try {
+      const saved = localStorage.getItem(CURRENCY_KEY);
+      if (saved && valutaSelect) {
+        valutaSelect.value = saved;
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  function sacuvajValutu() {
+    try {
+      localStorage.setItem(CURRENCY_KEY, getValuta());
+    } catch {
+      // ignore
+    }
+  }
+
   function postaviDanasnjiDatum() {
     const today = new Date().toISOString().slice(0, 10);
     if (!datumInput.value) datumInput.value = today;
+    if (filterDatum && !filterDatum.value) filterDatum.value = today;
   }
 
   function popuniFilterGodina() {
@@ -60,14 +88,29 @@
 
   function filtriraneTransakcije() {
     const sve = getTransakcije();
+    const mode = viewMode.value;
     const godina = parseInt(filterGodina.value, 10);
-    const mesec = viewMode.value === 'godina' ? null : (filterMesec.value ? parseInt(filterMesec.value, 10) : null);
+    const mesec = filterMesec.value ? parseInt(filterMesec.value, 10) : null;
+    const datumFilter = filterDatum?.value || null;
 
     return sve.filter(t => {
       const d = new Date(t.datum);
       if (isNaN(d.getTime())) return false;
-      if (d.getFullYear() !== godina) return false;
-      if (mesec !== null && d.getMonth() + 1 !== mesec) return false;
+
+      if (mode === 'godina') {
+        return d.getFullYear() === godina;
+      }
+
+      if (mode === 'mesec') {
+        if (!mesec) return d.getFullYear() === godina;
+        return d.getFullYear() === godina && d.getMonth() + 1 === mesec;
+      }
+
+      if (mode === 'dan') {
+        if (!datumFilter) return false;
+        return t.datum === datumFilter;
+      }
+
       return true;
     });
   }
@@ -83,7 +126,8 @@
   }
 
   function formatirajIznos(x) {
-    return new Intl.NumberFormat('sr-RS', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(x) + ' RSD';
+    const valuta = getValuta();
+    return new Intl.NumberFormat('sr-RS', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(x) + ' ' + valuta;
   }
 
   function formatirajDatum(str) {
@@ -188,14 +232,28 @@
   filterMesec.addEventListener('change', osveziPrikaz);
   filterGodina.addEventListener('change', osveziPrikaz);
   viewMode.addEventListener('change', function () {
-    if (viewMode.value === 'godina') {
+    const mode = viewMode.value;
+    if (mode === 'godina') {
       filterMesec.value = '';
-    } else {
+      if (labelFilterDan) labelFilterDan.classList.remove('active');
+    } else if (mode === 'mesec') {
       const d = new Date();
       filterMesec.value = (d.getMonth() + 1).toString();
+      if (labelFilterDan) labelFilterDan.classList.remove('active');
+    } else if (mode === 'dan') {
+      const today = new Date().toISOString().slice(0, 10);
+      if (filterDatum && !filterDatum.value) filterDatum.value = today;
+      if (labelFilterDan) labelFilterDan.classList.add('active');
     }
     osveziPrikaz();
   });
+
+  if (valutaSelect) {
+    valutaSelect.addEventListener('change', function () {
+      sacuvajValutu();
+      osveziPrikaz();
+    });
+  }
 
   btnIzvezi.addEventListener('click', function () {
     const transakcije = filtriraneTransakcije().sort((a, b) => new Date(a.datum) - new Date(b.datum));
@@ -203,8 +261,27 @@
       alert('Nema transakcija za izvoz.');
       return;
     }
-    const header = 'Datum,Tip,Kategorija,Opis,Iznos (RSD)';
-    const csv = [header, ...transakcije.map(t => [t.datum, t.tip, t.kategorija, t.opis, t.iznos].map(x => `"${String(x).replace(/"/g, '""')}"`).join(','))].join('\r\n');
+    const valuta = getValuta();
+    const mode = viewMode.value;
+    let periodOpis = '';
+    if (mode === 'godina') {
+      periodOpis = filterGodina.value || '';
+    } else if (mode === 'mesec') {
+      periodOpis = `${filterGodina.value || ''}-${filterMesec.value || ''}`;
+    } else if (mode === 'dan') {
+      periodOpis = filterDatum?.value || '';
+    }
+
+    const header = 'Datum,Tip,Kategorija,Opis,Iznos,Valuta,Period';
+    const csv = [header, ...transakcije.map(t => [
+      t.datum,
+      t.tip,
+      t.kategorija,
+      t.opis,
+      t.iznos,
+      valuta,
+      periodOpis
+    ].map(x => `"${String(x ?? '').replace(/"/g, '""')}"`).join(','))].join('\r\n');
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -215,6 +292,7 @@
 
   // Inicijalizacija
   postaviDanasnjiDatum();
+  ucitajValutu();
   popuniFilterMesec();
   popuniFilterGodina();
   osveziPrikaz();

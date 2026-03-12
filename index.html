@@ -13,7 +13,7 @@
   <div class="app">
     <header class="header">
       <h1>💰 Lične finansije Dragan</h1>
-      <p class="subtitle">Praćenje prihoda i rashoda — mesečno i godišnje</p>
+      <p class="subtitle">Praćenje prihoda i rashoda — dnevno, mesečno i godišnje</p>
     </header>
 
     <main class="main">
@@ -67,8 +67,22 @@
           <label class="view-toggle">
             <span>Prikaz</span>
             <select id="view-mode">
+              <option value="dan">Dnevni</option>
               <option value="mesec">Mesečni</option>
               <option value="godina">Godišnji</option>
+            </select>
+          </label>
+          <label class="date-filter" id="label-filter-dan">
+            <span>Datum</span>
+            <input type="date" id="filter-datum">
+          </label>
+          <label class="currency-filter">
+            <span>Valuta</span>
+            <select id="valuta">
+              <option value="RSD">Srpski dinar (RSD)</option>
+              <option value="EUR">Euro (EUR)</option>
+              <option value="USD">Američki dolar (USD)</option>
+              <option value="CHF">Švajcarski franak (CHF)</option>
             </select>
           </label>
         </div>
