@@ -422,8 +422,8 @@
           }
         }
 
-        // Iznos ukupnog salda (red „Ukupan bilans”, kolona Saldo) — bold
-        if (r === rezimeRow && c === 6) {
+        // Red „Ukupan bilans”: label (kolona 3) i iznos salda (kolona 6) — bold
+        if (r === rezimeRow && (c === 3 || c === 6)) {
           cell.font = Object.assign({}, cell.font || {}, { bold: true });
         }
 
