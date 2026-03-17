@@ -11,6 +11,8 @@
   --border: #30363d;
   --radius: 10px;
   --font: 'DM Sans', -apple-system, sans-serif;
+  --shadow-sm: 0 10px 22px rgba(0, 0, 0, 0.28);
+  --shadow-md: 0 18px 44px rgba(0, 0, 0, 0.45);
 }
 
 * {
@@ -24,21 +26,106 @@ body {
   color: var(--text);
   min-height: 100vh;
   line-height: 1.5;
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(900px 420px at 20% -10%, rgba(88, 166, 255, 0.14), transparent 60%),
+    radial-gradient(700px 360px at 85% 0%, rgba(255, 255, 255, 0.06), transparent 65%),
+    radial-gradient(900px 520px at 50% 110%, rgba(0, 0, 0, 0.55), transparent 55%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 28%, rgba(0, 0, 0, 0.22));
+  opacity: 1;
 }
 
 .app {
-  max-width: 720px;
+  max-width: 960px;
   margin: 0 auto;
   padding: 1.5rem;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+
+/* “Maska” / frame oko cele aplikacije */
+.app::before {
+  content: '';
+  position: absolute;
+  inset: 0.75rem;
+  border-radius: 18px;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.55),
+    0 10px 26px rgba(0, 0, 0, 0.35);
+}
+
+.app::after {
+  content: '';
+  position: absolute;
+  inset: 0.75rem;
+  border-radius: 18px;
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+  opacity: 1;
+}
+
+.app > * {
+  position: relative;
+}
+
+body.tabela-mode .app {
+  max-width: 1100px;
+}
+
+/* Layout početnog ekrana: leva (forma+pregled) i desna (kursna lista) */
+.home-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.home-left,
+.home-right {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+@media (min-width: 960px) {
+  .home-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.9fr) minmax(0, 1.1fr);
+    align-items: flex-start;
+  }
 }
 
 /* Header */
 .header {
   text-align: center;
   margin-bottom: 2rem;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.header-title {
+  text-align: center;
 }
 
 .header h1 {
@@ -53,6 +140,159 @@ body {
   margin: 0;
 }
 
+@media (max-width: 560px) {
+  .header-title { text-align: center; }
+  .header { text-align: center; }
+  .header-top { justify-content: center; }
+}
+
+/* =========================================================
+   STYLE VARIANTS (toggle preko body[data-ui-style])
+   ========================================================= */
+
+/* Base (neo3d) je trenutni default – nema override-a. */
+body[data-ui-style="neo3d"] {
+  /* intentional no-op */
+}
+
+/* Premium: čistiji, “skuplji” – manje 3D stepenika, više soft shadow */
+body[data-ui-style="premium"] {
+  --shadow-sm: 0 10px 26px rgba(0, 0, 0, 0.30);
+  --shadow-md: 0 22px 60px rgba(0, 0, 0, 0.52);
+}
+
+body[data-ui-style="premium"] .btn {
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.38);
+}
+
+body[data-ui-style="premium"] .btn:hover {
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.50);
+}
+
+body[data-ui-style="premium"] .btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.40);
+}
+
+body[data-ui-style="premium"] .btn-primary,
+body[data-ui-style="premium"] .btn-outline {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 12px 28px rgba(0, 0, 0, 0.38);
+}
+
+/* Glass: prozirniji paneli (i dalje u istim bojama), više “glass” */
+body[data-ui-style="glass"] .card {
+  background: linear-gradient(180deg, rgba(26, 35, 50, 0.72), rgba(26, 35, 50, 0.52));
+  border-color: rgba(48, 54, 61, 0.75);
+  backdrop-filter: blur(10px);
+}
+
+body[data-ui-style="glass"] .rezime-item,
+body[data-ui-style="glass"] .lista-transakcija li {
+  background: rgba(15, 20, 25, 0.68);
+  backdrop-filter: blur(10px);
+}
+
+body[data-ui-style="glass"] .app::before {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+}
+
+/* Minimal: ravnije, manje senki, “flat” ali i dalje moderna */
+body[data-ui-style="minimal"] {
+  --shadow-sm: none;
+  --shadow-md: none;
+}
+
+body[data-ui-style="minimal"]::before {
+  opacity: 0.7;
+}
+
+body[data-ui-style="minimal"] .app::before,
+body[data-ui-style="minimal"] .app::after,
+body[data-ui-style="minimal"] .card::before {
+  display: none;
+}
+
+body[data-ui-style="minimal"] .card {
+  box-shadow: none;
+}
+
+body[data-ui-style="minimal"] .btn,
+body[data-ui-style="minimal"] .btn-primary,
+body[data-ui-style="minimal"] .btn-outline {
+  box-shadow: none;
+}
+
+body[data-ui-style="minimal"] .btn:hover {
+  transform: none;
+}
+
+body[data-ui-style="minimal"] .btn:active {
+  transform: none;
+}
+
+/* Business: uredan, “corporate” izgled, manje boja, naglašeni brojevi */
+body[data-ui-style="business"] {
+  --surface: #111821;
+  --surface-hover: #1b2432;
+  --border: #202938;
+}
+
+body[data-ui-style="business"] .header h1 {
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  font-size: 1.6rem;
+}
+
+body[data-ui-style="business"] .rezime-item {
+  background: #0b1017;
+}
+
+body[data-ui-style="business"] .rezime-item .label {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+}
+
+body[data-ui-style="business"] .btn-primary {
+  background: linear-gradient(180deg, #5f7fff 0%, #3b5cff 100%);
+}
+
+body[data-ui-style="business"] .btn-outline {
+  color: #9fb3ff;
+  border-color: #9fb3ff;
+}
+
+/* Tech: izraženiji neon efekat, tech osvetljenje */
+body[data-ui-style="tech"] {
+  --primary: #3ddcff;
+  --primary-hover: #66e7ff;
+}
+
+body[data-ui-style="tech"] body::before {
+  background:
+    radial-gradient(900px 420px at 20% -10%, rgba(61, 220, 255, 0.18), transparent 60%),
+    radial-gradient(700px 360px at 85% 0%, rgba(124, 255, 197, 0.11), transparent 65%),
+    radial-gradient(900px 520px at 50% 110%, rgba(0, 0, 0, 0.6), transparent 55%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 28%, rgba(0, 0, 0, 0.26));
+}
+
+body[data-ui-style="tech"] .btn-primary {
+  background: linear-gradient(180deg, #7df1ff 0%, #3ddcff 55%, #0b93a9 100%);
+}
+
+body[data-ui-style="tech"] .btn-outline {
+  color: #3ddcff;
+  border-color: #3ddcff;
+}
+
+body[data-ui-style="tech"] .rezime-item.prihod .vrednost {
+  color: #5aff9b;
+}
+
+body[data-ui-style="tech"] .rezime-item.rashod .vrednost {
+  color: #ff6f6f;
+}
+
 /* Cards */
 .card {
   background: var(--surface);
@@ -60,6 +300,23 @@ body {
   border-radius: var(--radius);
   padding: 1.25rem 1.5rem;
   margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(1200px 500px at 18% 0%, rgba(255, 255, 255, 0.06), transparent 55%),
+              radial-gradient(900px 450px at 90% 12%, rgba(88, 166, 255, 0.05), transparent 60%);
+  opacity: 0.9;
+}
+
+.card > * {
+  position: relative;
 }
 
 .card h2 {
@@ -135,22 +392,61 @@ body {
   font-weight: 500;
   cursor: pointer;
   border: none;
-  transition: background 0.15s, color 0.15s;
+  transition: transform 0.08s ease, box-shadow 0.15s ease, background 0.15s, color 0.15s, border-color 0.15s;
+  box-shadow:
+    0 9px 0 rgba(0, 0, 0, 0.32),
+    0 18px 34px rgba(0, 0, 0, 0.42);
+  transform: translateY(0);
+}
+
+.btn:focus-visible {
+  outline: 2px solid rgba(88, 166, 255, 0.8);
+  outline-offset: 2px;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 10px 0 rgba(0, 0, 0, 0.32),
+    0 24px 44px rgba(0, 0, 0, 0.48);
+}
+
+.btn:active {
+  transform: translateY(4px);
+  box-shadow:
+    0 3px 0 rgba(0, 0, 0, 0.32),
+    0 12px 26px rgba(0, 0, 0, 0.38);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .btn-primary {
-  background: var(--primary);
+  background: linear-gradient(180deg, #7dbdff 0%, var(--primary) 55%, #2f7fe6 100%);
   color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 9px 0 rgba(0, 0, 0, 0.32),
+    0 18px 34px rgba(0, 0, 0, 0.42);
 }
 
 .btn-primary:hover {
-  background: var(--primary-hover);
+  background: linear-gradient(180deg, #9accff 0%, var(--primary-hover) 55%, #3e8df0 100%);
 }
 
 .btn-outline {
-  background: transparent;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%);
   color: var(--primary);
   border: 1px solid var(--primary);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 9px 0 rgba(0, 0, 0, 0.32),
+    0 18px 34px rgba(0, 0, 0, 0.42);
 }
 
 .btn-outline:hover {
@@ -241,6 +537,117 @@ body {
   }
 }
 
+/* Kursna lista (NBS) */
+.card-kursevi h2 {
+  margin-bottom: 0.4rem;
+}
+
+.konvertor-note {
+  margin: 0 0 0.9rem 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.kurs-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.6rem;
+  margin-bottom: 0.9rem;
+}
+
+.kurs-grid label {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.kurs-grid input {
+  padding: 0.35rem 0.55rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.kurs-grid .suffix {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.btn-sacuvaj-kurs {
+  margin-top: 0.25rem;
+  width: 100%;
+}
+
+.kurs-meta {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.konvertor-mini {
+  margin-top: 1.1rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.konvertor-mini h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.konvertor-mini-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.konvertor-mini-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.konvertor-mini-row span {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.konvertor-mini-row input,
+.konvertor-mini-row select {
+  padding: 0.45rem 0.7rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+}
+
+.konvertor-mini-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+@media (max-width: 520px) {
+  .konvertor-mini-row-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.konvertor-mini-rezultat {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
 /* Lista transakcija */
 .transakcije-header {
   display: flex;
@@ -249,6 +656,13 @@ body {
   margin-bottom: 0.75rem;
   padding-bottom: 0.35rem;
   border-bottom: 1px solid var(--border);
+}
+
+.transakcije-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .transakcije-header h3 {
@@ -273,6 +687,7 @@ body {
   padding: 0.65rem 0.85rem;
   background: var(--bg);
   border-bottom: 1px solid var(--border);
+  gap: 0.75rem;
 }
 
 .lista-transakcija li:last-child {
@@ -287,6 +702,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .lista-transakcija .datum-str {
@@ -301,6 +718,9 @@ body {
 .lista-transakcija .iznos {
   font-weight: 600;
   white-space: nowrap;
+  text-align: right;
+  width: 160px;
+  font-variant-numeric: tabular-nums;
 }
 
 .lista-transakcija .iznos.prihod { color: var(--prihod); }
@@ -336,6 +756,92 @@ body {
 
 .prazno.sakriveno {
   display: none;
+}
+
+@media (max-width: 520px) {
+  .lista-transakcija .iznos {
+    width: 120px;
+  }
+}
+
+/* "Page" switching */
+.page-hidden {
+  display: none;
+}
+
+/* Tabelarni pregled */
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.table-subtitle {
+  margin: 0.35rem 0 0 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.table-wrap {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.transakcije-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+}
+
+.transakcije-tabela th,
+.transakcije-tabela td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.transakcije-tabela thead th {
+  position: sticky;
+  top: 0;
+  background: #141b24;
+  z-index: 1;
+  text-align: left;
+  font-weight: 700;
+}
+
+.transakcije-tabela td.num,
+.transakcije-tabela th.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.transakcije-tabela tbody tr:nth-child(even) td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.transakcije-tabela .prihod {
+  color: var(--prihod);
+  font-weight: 600;
+}
+
+.transakcije-tabela .rashod {
+  color: var(--rashod);
+  font-weight: 600;
+}
+
+.transakcije-tabela .saldo {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.transakcije-tabela .ukupan-bilans td {
+  font-weight: 700;
+  background: rgba(88, 166, 255, 0.08);
 }
 
 /* Footer */

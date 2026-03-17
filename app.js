@@ -20,8 +20,26 @@
   const listaTransakcija = document.getElementById('lista-transakcija');
   const praznoPoruka = document.getElementById('prazno-poruka');
   const btnIzvezi = document.getElementById('btn-izvezi');
+  const btnPregledTabela = document.getElementById('btn-pregled-tabela');
+  const pageHome = document.getElementById('page-home');
+  const pageTabela = document.getElementById('page-tabela');
+  const btnNazad = document.getElementById('btn-nazad');
+  const tabelaSubtitle = document.getElementById('tabela-subtitle');
+  const tabelaBody = document.getElementById('tabela-body');
+
+  const kursEurInput = document.getElementById('nbs-eur');
+  const kursUsdInput = document.getElementById('nbs-usd');
+  const kursChfInput = document.getElementById('nbs-chf');
+  const kursMetaEl = document.getElementById('kurs-meta');
+  const btnSacuvajKurseve = document.getElementById('btn-sacuvaj-kurseve');
+  const konvIznosInput = document.getElementById('konv-iznos');
+  const konvIzSelect = document.getElementById('konv-iz');
+  const konvUSelect = document.getElementById('konv-u');
+  const konvRezEl = document.getElementById('konv-rezultat');
+  const btnKonvertuj = document.getElementById('btn-konvertuj');
 
   const MESIOCI = ['Januar', 'Februar', 'Mart', 'April', 'Maj', 'Jun', 'Jul', 'Avgust', 'Septembar', 'Oktobar', 'Novembar', 'Decembar'];
+  const KURS_KEY = 'licne-finansije-nbs-kursevi';
 
   function getTransakcije() {
     try {
@@ -59,11 +77,166 @@
     }
   }
 
+  // Kursna lista (ručni unos vrednosti NBS, čuva se lokalno)
+  const DEFAULT_KURSEVI = {
+    EUR: null,
+    USD: null,
+    CHF: null,
+    lastUpdated: null
+  };
+
+  let kurseviNbs = Object.assign({}, DEFAULT_KURSEVI);
+
+  function ucitajKurseve() {
+    try {
+      const raw = localStorage.getItem(KURS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          kurseviNbs = Object.assign({}, DEFAULT_KURSEVI, parsed);
+        }
+      }
+    } catch {
+      kurseviNbs = Object.assign({}, DEFAULT_KURSEVI);
+    }
+
+    if (kursEurInput && kurseviNbs.EUR != null) kursEurInput.value = kurseviNbs.EUR;
+    if (kursUsdInput && kurseviNbs.USD != null) kursUsdInput.value = kurseviNbs.USD;
+    if (kursChfInput && kurseviNbs.CHF != null) kursChfInput.value = kurseviNbs.CHF;
+
+    if (kursMetaEl) {
+      if (kurseviNbs.lastUpdated) {
+        kursMetaEl.textContent = `Poslednje ažurirano: ${kurseviNbs.lastUpdated}`;
+      } else {
+        kursMetaEl.textContent = 'Kursevi nisu još sačuvani.';
+      }
+    }
+  }
+
+  function sacuvajKurseve() {
+    try {
+      localStorage.setItem(KURS_KEY, JSON.stringify(kurseviNbs));
+    } catch {
+      // ignore
+    }
+  }
+
+  function azurirajKurseveIzForme() {
+    const eur = kursEurInput ? parseFloat(kursEurInput.value) : NaN;
+    const usd = kursUsdInput ? parseFloat(kursUsdInput.value) : NaN;
+    const chf = kursChfInput ? parseFloat(kursChfInput.value) : NaN;
+
+    if (isNaN(eur) || isNaN(usd) || isNaN(chf)) {
+      if (kursMetaEl) kursMetaEl.textContent = 'Unesi sve tri vrednosti (EUR, USD, CHF).';
+      return;
+    }
+
+    kurseviNbs.EUR = eur;
+    kurseviNbs.USD = usd;
+    kurseviNbs.CHF = chf;
+    const sada = new Date();
+    kurseviNbs.lastUpdated = sada.toLocaleString('sr-RS');
+
+    sacuvajKurseve();
+    if (kursMetaEl) kursMetaEl.textContent = `Poslednje ažurirano: ${kurseviNbs.lastUpdated}`;
+  }
+
+  function konvertujValutePoNbs() {
+    if (!konvIznosInput || !konvIzSelect || !konvUSelect || !konvRezEl) return;
+
+    const iznos = parseFloat(konvIznosInput.value);
+    if (isNaN(iznos)) {
+      konvRezEl.textContent = 'Unesi iznos za konverziju.';
+      return;
+    }
+    if (iznos < 0) {
+      konvRezEl.textContent = 'Iznos ne može biti manji od 0.';
+      return;
+    }
+    if (iznos > 10000000) {
+      konvRezEl.textContent = 'Maksimalni iznos za konverziju je 10.000.000,00.';
+      return;
+    }
+
+    const iz = konvIzSelect.value;
+    const u = konvUSelect.value;
+    if (iz === u) {
+      konvRezEl.textContent = 'Izabrane su iste valute.';
+      return;
+    }
+
+    const rIz = iz === 'RSD' ? 1 : kurseviNbs[iz];
+    const rU = u === 'RSD' ? 1 : kurseviNbs[u];
+
+    if (!rIz || !rU) {
+      konvRezEl.textContent = 'Nedostaju kursevi za konverziju – prvo popuni i sačuvaj kursnu listu.';
+      return;
+    }
+
+    // Konverzija ide preko RSD
+    const iznosRsd = iz === 'RSD' ? iznos : iznos * rIz;
+    const rezultat = u === 'RSD' ? iznosRsd : iznosRsd / rU;
+
+    const formatter = new Intl.NumberFormat('sr-RS', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+
+    konvRezEl.textContent = `${formatter.format(iznos)} ${iz} ≈ ${formatter.format(rezultat)} ${u}`;
+  }
+
+  async function automatskiUcitajKurseveSaInterneta() {
+    // Pokušaj da preuzmeš aktuelne kurseve sa javnog API-ja (ECB preko Frankfurter.dev).
+    // Ovo NIJE zvanični NBS izvor, ali daje referentne EUR/USD/CHF vrednosti.
+    try {
+      const resp = await fetch('https://api.frankfurter.dev/v1/latest?base=EUR&symbols=RSD,USD,CHF');
+      if (!resp.ok) return;
+      const data = await resp.json();
+      if (!data || !data.rates) return;
+
+      const { RSD, USD, CHF } = data.rates;
+      if (!RSD) return;
+
+      // RSD je sada "koliko RSD za 1 EUR"
+      if (typeof RSD === 'number') {
+        kurseviNbs.EUR = RSD;
+      }
+
+      // USD i CHF su izraženi u odnosu na EUR – preračunaj u RSD
+      if (typeof USD === 'number') {
+        kurseviNbs.USD = RSD * USD;
+      }
+      if (typeof CHF === 'number') {
+        kurseviNbs.CHF = RSD * CHF;
+      }
+
+      const sada = new Date();
+      kurseviNbs.lastUpdated = sada.toLocaleString('sr-RS') + ' (ECB referentni kurs preko Frankfurter.dev)';
+
+      // Upis u polja
+      if (kursEurInput && kurseviNbs.EUR != null) kursEurInput.value = kurseviNbs.EUR.toFixed(4);
+      if (kursUsdInput && kurseviNbs.USD != null) kursUsdInput.value = kurseviNbs.USD.toFixed(4);
+      if (kursChfInput && kurseviNbs.CHF != null) kursChfInput.value = kurseviNbs.CHF.toFixed(4);
+
+      sacuvajKurseve();
+      if (kursMetaEl) kursMetaEl.textContent = `Automatski učitano: ${kurseviNbs.lastUpdated}`;
+    } catch {
+      // Ako ne uspe, ne smetamo korisniku – ostaje ručni unos ili prethodno sačuvano stanje
+    }
+  }
+
+
+  function setUiStyle(style) {
+    const safe = (style || '').trim() || 'tech';
+    document.body.dataset.uiStyle = safe;
+  }
+
   function postaviDanasnjiDatum() {
     const today = new Date().toISOString().slice(0, 10);
     if (!datumInput.value) datumInput.value = today;
     if (filterDatum && !filterDatum.value) filterDatum.value = today;
   }
+
 
   function popuniFilterGodina() {
     const transakcije = getTransakcije();
@@ -132,6 +305,17 @@
     }).format(x);
   }
 
+  function periodOpisTekst() {
+    const mode = viewMode.value;
+    const periodTip = mode === 'dan' ? 'Dnevni' : (mode === 'mesec' ? 'Mesečni' : 'Godišnji');
+    let periodOpis = '';
+    if (mode === 'godina') periodOpis = filterGodina.value || '';
+    else if (mode === 'mesec') periodOpis = `${filterGodina.value || ''}-${filterMesec.value || ''}`;
+    else if (mode === 'dan') periodOpis = filterDatum?.value ? formatirajDatum(filterDatum.value) : '';
+    const periodZaglavlje = periodTip + (periodOpis ? ' — ' + periodOpis : '');
+    return periodZaglavlje || 'Svi zapisi';
+  }
+
   // Locale 407 = nemački (tačka hiljade, zarez decimale) – isto kao u Format Cells uzoru
   const EXCEL_DATUM_FORMAT = '[$-407]dd.mm.yyyy';
   const EXCEL_BROJ_FORMAT = '[$-407]#.##0,00';
@@ -150,7 +334,10 @@
   function formatirajDatum(str) {
     const d = new Date(str);
     if (isNaN(d.getTime())) return str;
-    return d.toLocaleDateString('sr-RS', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = String(d.getFullYear());
+    return `${dd}.${mm}.${yyyy}.`;
   }
 
   function osveziRezime() {
@@ -218,6 +405,79 @@
   function osveziPrikaz() {
     osveziRezime();
     crtajListu();
+    if (pageTabela && !pageTabela.classList.contains('page-hidden')) {
+      crtajTabelu();
+    }
+  }
+
+  function prikaziHome() {
+    document.body.classList.remove('tabela-mode');
+    if (pageHome) pageHome.classList.remove('page-hidden');
+    if (pageTabela) pageTabela.classList.add('page-hidden');
+    if (pageTabela) pageTabela.setAttribute('aria-hidden', 'true');
+  }
+
+  function prikaziTabelu() {
+    document.body.classList.add('tabela-mode');
+    if (pageHome) pageHome.classList.add('page-hidden');
+    if (pageTabela) pageTabela.classList.remove('page-hidden');
+    if (pageTabela) pageTabela.setAttribute('aria-hidden', 'false');
+    crtajTabelu();
+  }
+
+  function crtajTabelu() {
+    if (!tabelaBody) return;
+
+    const transakcije = filtriraneTransakcije().sort((a, b) => new Date(a.datum) - new Date(b.datum));
+    const valuta = getValuta();
+    const period = periodOpisTekst();
+    if (tabelaSubtitle) tabelaSubtitle.textContent = `Period: ${period} | Valuta: ${valuta}`;
+
+    if (transakcije.length === 0) {
+      tabelaBody.innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align:center; color: var(--text-muted); padding: 1.25rem;">
+            Nema transakcija za izabrani period.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    let saldo = 0;
+    const rezime = izracunajRezime(transakcije);
+
+    const rows = transakcije.map(t => {
+      const iznos = parseFloat(t.iznos) || 0;
+      const prihod = t.tip === 'prihod' ? iznos : null;
+      const rashod = t.tip === 'rashod' ? iznos : null;
+      if (prihod !== null) saldo += prihod;
+      if (rashod !== null) saldo -= rashod;
+
+      return `
+        <tr>
+          <td>${formatirajDatum(t.datum)}</td>
+          <td>${escapeHtml(t.kategorija || '')}</td>
+          <td>${escapeHtml(t.opis || '')}</td>
+          <td class="num prihod">${prihod !== null ? formatirajBrojCSV(prihod) : ''}</td>
+          <td class="num rashod">${rashod !== null ? formatirajBrojCSV(rashod) : ''}</td>
+          <td class="num saldo">${formatirajBrojCSV(saldo)}</td>
+        </tr>
+      `;
+    }).join('');
+
+    const rezimeRow = `
+      <tr class="ukupan-bilans">
+        <td></td>
+        <td></td>
+        <td>Ukupan bilans</td>
+        <td class="num"></td>
+        <td class="num"></td>
+        <td class="num saldo">${formatirajBrojCSV(rezime.bilans)}</td>
+      </tr>
+    `;
+
+    tabelaBody.innerHTML = rows + rezimeRow;
   }
 
   form.addEventListener('submit', function (e) {
@@ -316,8 +576,7 @@
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet('Finansije', { views: [{ rightToLeft: false }] });
 
-    const periodTip = mode === 'dan' ? 'Dnevni' : (mode === 'mesec' ? 'Mesečni' : 'Godišnji');
-    const periodZaglavlje = periodTip + (periodOpis ? ' — ' + periodOpis : '');
+    const periodZaglavlje = periodOpisTekst();
 
     ws.getCell(1, 1).value = 'Lične finansije Dragan';
     ws.getCell(2, 1).value = 'Period';
@@ -447,9 +706,41 @@
     }
   });
 
+  if (btnPregledTabela) {
+    btnPregledTabela.addEventListener('click', function () {
+      prikaziTabelu();
+    });
+  }
+
+  if (btnNazad) {
+    btnNazad.addEventListener('click', function () {
+      prikaziHome();
+    });
+  }
+
+  if (btnSacuvajKurseve) {
+    btnSacuvajKurseve.addEventListener('click', azurirajKurseveIzForme);
+  }
+
+  if (btnKonvertuj) {
+    btnKonvertuj.addEventListener('click', konvertujValutePoNbs);
+  }
+
+  if (konvIznosInput) {
+    konvIznosInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        konvertujValutePoNbs();
+      }
+    });
+  }
+
   // Inicijalizacija
   postaviDanasnjiDatum();
+  setUiStyle('tech');
   ucitajValutu();
+  ucitajKurseve();
+  automatskiUcitajKurseveSaInterneta();
   popuniFilterMesec();
   popuniFilterGodina();
   osveziPrikaz();

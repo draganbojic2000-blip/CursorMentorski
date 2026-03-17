@@ -1,0 +1,24 @@
+{
+  "name": "cursormentorski",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/draganbojic2000-blip/CursorMentorski.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/draganbojic2000-blip/CursorMentorski/issues"
+  },
+  "homepage": "https://github.com/draganbojic2000-blip/CursorMentorski#readme",
+  "devDependencies": {
+    "netlify-cli": "^24.2.0"
+  }
+}

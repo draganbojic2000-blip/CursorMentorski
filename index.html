@@ -12,119 +12,222 @@
 <body>
   <div class="app">
     <header class="header">
-      <h1>💰 Lične finansije Dragan</h1>
-      <p class="subtitle">Praćenje prihoda i rashoda — dnevno, mesečno i godišnje</p>
+      <div class="header-top">
+        <div class="header-title">
+          <h1>💰 Lične finansije Dragan</h1>
+          <p class="subtitle">Praćenje prihoda i rashoda — dnevno, mesečno i godišnje</p>
+        </div>
+      </div>
     </header>
 
-    <main class="main">
-      <!-- Forma za dodavanje transakcije -->
-      <section class="card section-form">
-        <div class="form-header-row">
-          <h2>Dodaj transakciju</h2>
-          <label class="currency-filter">
-            <span>Valuta</span>
-            <select id="valuta">
-              <option value="RSD">Srpski dinar (RSD)</option>
-              <option value="EUR">Euro (EUR)</option>
-              <option value="USD">Američki dolar (USD)</option>
-              <option value="CHF">Švajcarski franak (CHF)</option>
-            </select>
-          </label>
-        </div>
-        <form id="form-transakcija">
-          <div class="form-row">
-            <label>
-              <span>Tip</span>
-              <select id="tip" name="tip" required>
-                <option value="prihod">Prihod</option>
-                <option value="rashod">Rashod</option>
-              </select>
-            </label>
-            <label>
-              <span>Iznos (RSD)</span>
-              <input type="number" id="iznos" name="iznos" required min="0" step="0.01" placeholder="npr. 50000">
-            </label>
-            <label>
-              <span>Datum</span>
-              <input type="date" id="datum" name="datum" required>
-            </label>
-          </div>
-          <div class="form-row">
-            <label class="label-full">
-              <span>Kategorija</span>
-              <select id="kategorija" name="kategorija">
-                <option value="">— Izaberi kategoriju —</option>
-                <option value="Plata">Plata</option>
-                <option value="Akontacija">Akontacija</option>
-                <option value="Struja">Struja</option>
-                <option value="Voda">Voda</option>
-                <option value="SON">SON</option>
-                <option value="MAXI">MAXI</option>
-                <option value="IDEA">IDEA</option>
-                <option value="TEMPO">TEMPO</option>
-                <option value="RODA">RODA</option>
-              </select>
-            </label>
-            <label class="label-full">
-              <span>Opis (opciono)</span>
-              <input type="text" id="opis" name="opis" placeholder="Kratak opis">
-            </label>
-          </div>
-          <button type="submit" class="btn btn-primary">Dodaj</button>
-        </form>
-      </section>
+    <main class="main" id="page-home">
+      <div class="home-grid">
+        <div class="home-left">
+          <!-- Forma za dodavanje transakcije -->
+          <section class="card section-form">
+            <div class="form-header-row">
+              <h2>Dodaj transakciju</h2>
+              <label class="currency-filter">
+                <span>Valuta</span>
+                <select id="valuta">
+                  <option value="RSD">Srpski dinar (RSD)</option>
+                  <option value="EUR">Euro (EUR)</option>
+                  <option value="USD">Američki dolar (USD)</option>
+                  <option value="CHF">Švajcarski franak (CHF)</option>
+                </select>
+              </label>
+            </div>
+            <form id="form-transakcija">
+              <div class="form-row">
+                <label>
+                  <span>Tip</span>
+                  <select id="tip" name="tip" required>
+                    <option value="prihod">Prihod</option>
+                    <option value="rashod">Rashod</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Iznos (RSD)</span>
+                  <input type="number" id="iznos" name="iznos" required min="0" step="0.01" placeholder="npr. 50000">
+                </label>
+                <label>
+                  <span>Datum</span>
+                  <input type="date" id="datum" name="datum" required>
+                </label>
+              </div>
+              <div class="form-row">
+                <label class="label-full">
+                  <span>Kategorija</span>
+                  <select id="kategorija" name="kategorija">
+                    <option value="">— Izaberi kategoriju —</option>
+                    <option value="Plata">Plata</option>
+                    <option value="Akontacija">Akontacija</option>
+                    <option value="Struja">Struja</option>
+                    <option value="Voda">Voda</option>
+                    <option value="SON">SON</option>
+                    <option value="MAXI">MAXI</option>
+                    <option value="IDEA">IDEA</option>
+                    <option value="TEMPO">TEMPO</option>
+                    <option value="RODA">RODA</option>
+                  </select>
+                </label>
+                <label class="label-full">
+                  <span>Opis (opciono)</span>
+                  <input type="text" id="opis" name="opis" placeholder="Kratak opis">
+                </label>
+              </div>
+              <button type="submit" class="btn btn-primary">Dodaj</button>
+            </form>
+          </section>
 
-      <!-- Filter i pregled -->
-      <section class="card section-pregled">
-        <h2>Pregled</h2>
-        <div class="filter-row">
-          <label>
-            <span>Mesec</span>
-            <select id="filter-mesec"></select>
-          </label>
-          <label>
-            <span>Godina</span>
-            <select id="filter-godina"></select>
-          </label>
-          <label class="view-toggle">
-            <span>Prikaz</span>
-            <select id="view-mode">
-              <option value="dan">Dnevni</option>
-              <option value="mesec">Mesečni</option>
-              <option value="godina">Godišnji</option>
-            </select>
-          </label>
-          <label class="date-filter" id="label-filter-dan">
-            <span>Datum</span>
-            <input type="date" id="filter-datum">
-          </label>
+          <!-- Filter i pregled -->
+          <section class="card section-pregled">
+            <h2>Pregled</h2>
+            <div class="filter-row">
+              <label>
+                <span>Mesec</span>
+                <select id="filter-mesec"></select>
+              </label>
+              <label>
+                <span>Godina</span>
+                <select id="filter-godina"></select>
+              </label>
+              <label class="view-toggle">
+                <span>Prikaz</span>
+                <select id="view-mode">
+                  <option value="dan">Dnevni</option>
+                  <option value="mesec">Mesečni</option>
+                  <option value="godina">Godišnji</option>
+                </select>
+              </label>
+              <label class="date-filter" id="label-filter-dan">
+                <span>Datum</span>
+                <input type="date" id="filter-datum">
+              </label>
+            </div>
+
+            <!-- Rezime (mesec/godina) -->
+            <div class="rezime" id="rezime">
+              <div class="rezime-item prihod">
+                <span class="label">Ukupno prihodi</span>
+                <span class="vrednost" id="ukupno-prihodi">0 RSD</span>
+              </div>
+              <div class="rezime-item rashod">
+                <span class="label">Ukupno rashodi</span>
+                <span class="vrednost" id="ukupno-rashodi">0 RSD</span>
+              </div>
+              <div class="rezime-item bilans">
+                <span class="label">Bilans</span>
+                <span class="vrednost" id="bilans">0 RSD</span>
+              </div>
+            </div>
+
+            <!-- Lista transakcija -->
+            <div class="transakcije-header">
+              <h3>Transakcije</h3>
+              <div class="transakcije-actions">
+                <button type="button" class="btn btn-small btn-outline" id="btn-pregled-tabela">Pregled tabela</button>
+                <button type="button" class="btn btn-small btn-outline" id="btn-izvezi">Izvezi u Excel</button>
+              </div>
+            </div>
+            <ul class="lista-transakcija" id="lista-transakcija">
+              <!-- Popunjava JS -->
+            </ul>
+            <p class="prazno" id="prazno-poruka">Nema transakcija za izabrani period.</p>
+          </section>
         </div>
 
-        <!-- Rezime (mesec/godina) -->
-        <div class="rezime" id="rezime">
-          <div class="rezime-item prihod">
-            <span class="label">Ukupno prihodi</span>
-            <span class="vrednost" id="ukupno-prihodi">0 RSD</span>
+        <aside class="home-right">
+          <section class="card card-kursevi">
+            <h2>Kursna lista i konvertor (NBS)</h2>
+            <p class="konvertor-note">Srednji kurs Narodne banke Srbije za danas. Vrednosti unosiš sa sajta NBS, a aplikacija ih pamti lokalno i koristi za konverziju.</p>
+
+            <div class="kurs-grid">
+              <label>
+                <span>1 EUR</span>
+                <input type="number" id="nbs-eur" min="0" step="0.0001" placeholder="npr. 117.3000">
+                <span class="suffix">RSD</span>
+              </label>
+              <label>
+                <span>1 USD</span>
+                <input type="number" id="nbs-usd" min="0" step="0.0001" placeholder="npr. 107.2500">
+                <span class="suffix">RSD</span>
+              </label>
+              <label>
+                <span>1 CHF</span>
+                <input type="number" id="nbs-chf" min="0" step="0.0001" placeholder="npr. 117.9000">
+                <span class="suffix">RSD</span>
+              </label>
+            </div>
+
+            <button type="button" class="btn btn-primary btn-small btn-sacuvaj-kurs" id="btn-sacuvaj-kurseve">Sačuvaj kurseve</button>
+            <p class="kurs-meta" id="kurs-meta">Kursevi nisu još sačuvani.</p>
+
+            <div class="konvertor-mini">
+              <h3>Brzi konvertor</h3>
+              <div class="konvertor-mini-row">
+                <label>
+                  <span>Iznos (max 10.000.000)</span>
+                  <input type="number" id="konv-iznos" min="0" max="10000000" step="0.01" placeholder="npr. 100">
+                </label>
+              </div>
+              <div class="konvertor-mini-row konvertor-mini-row-2">
+                <label>
+                  <span>Iz valute</span>
+                  <select id="konv-iz">
+                    <option value="RSD">RSD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="USD">USD</option>
+                    <option value="CHF">CHF</option>
+                  </select>
+                </label>
+                <label>
+                  <span>U valutu</span>
+                  <select id="konv-u">
+                    <option value="EUR">EUR</option>
+                    <option value="USD">USD</option>
+                    <option value="CHF">CHF</option>
+                    <option value="RSD">RSD</option>
+                  </select>
+                </label>
+              </div>
+              <button type="button" class="btn btn-primary btn-small btn-konvertuj" id="btn-konvertuj">Konvertuj</button>
+              <p class="konvertor-mini-rezultat" id="konv-rezultat">Rezultat će se pojaviti ovde.</p>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </main>
+
+    <main class="main page-hidden" id="page-tabela" aria-hidden="true">
+      <section class="card">
+        <div class="table-header">
+          <div>
+            <h2>Tabelarni pregled transakcija</h2>
+            <p class="table-subtitle" id="tabela-subtitle">Period: — | Valuta: —</p>
           </div>
-          <div class="rezime-item rashod">
-            <span class="label">Ukupno rashodi</span>
-            <span class="vrednost" id="ukupno-rashodi">0 RSD</span>
-          </div>
-          <div class="rezime-item bilans">
-            <span class="label">Bilans</span>
-            <span class="vrednost" id="bilans">0 RSD</span>
+          <div class="table-actions">
+            <button type="button" class="btn btn-small btn-outline" id="btn-nazad">Nazad</button>
           </div>
         </div>
 
-        <!-- Lista transakcija -->
-        <div class="transakcije-header">
-          <h3>Transakcije</h3>
-          <button type="button" class="btn btn-small btn-outline" id="btn-izvezi">Izvezi u Excel</button>
+        <div class="table-wrap" role="region" aria-label="Tabela transakcija">
+          <table class="transakcije-tabela" id="transakcije-tabela">
+            <thead>
+              <tr>
+                <th>Datum</th>
+                <th>Kategorija</th>
+                <th>Opis</th>
+                <th class="num">Prihod</th>
+                <th class="num">Rashod</th>
+                <th class="num">Saldo</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-body">
+              <!-- Popunjava JS -->
+            </tbody>
+          </table>
         </div>
-        <ul class="lista-transakcija" id="lista-transakcija">
-          <!-- Popunjava JS -->
-        </ul>
-        <p class="prazno" id="prazno-poruka">Nema transakcija za izabrani period.</p>
       </section>
     </main>
 
