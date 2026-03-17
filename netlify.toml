@@ -3,6 +3,9 @@
   publish = "."
   command = ""
 
+[functions]
+  directory = "netlify/functions"
+
 # SPA-style: sve rute vode na index.html (ako kasnije dodaš rutiranje)
 # [[redirects]]
 #   from = "/*"

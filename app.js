@@ -186,35 +186,23 @@
   }
 
   async function automatskiUcitajKurseveSaInterneta() {
-    // Pokušaj da preuzmeš aktuelne kurseve sa javnog API-ja (ECB preko Frankfurter.dev).
-    // Ovo NIJE zvanični NBS izvor, ali daje referentne EUR/USD/CHF vrednosti.
+    // Pokušaj da preuzmeš aktuelne kurseve preko Netlify funkcije.
+    // Funkcija poziva Frankfurter.app sa server strane (ECB referentni kurs).
     try {
       if (kursMetaEl) {
-        kursMetaEl.textContent = 'Učitavam kurseve sa Frankfurter.dev...';
+        kursMetaEl.textContent = 'Učitavam kurseve sa servera...';
       }
-      const resp = await fetch('https://api.frankfurter.dev/v1/latest?base=EUR&symbols=RSD,USD,CHF');
+      const resp = await fetch('/.netlify/functions/kursevi');
       if (!resp.ok) return;
       const data = await resp.json();
-      if (!data || !data.rates) return;
+      if (!data || typeof data.eurRsd !== 'number') return;
 
-      const { RSD, USD, CHF } = data.rates;
-      if (!RSD) return;
-
-      // RSD je sada "koliko RSD za 1 EUR"
-      if (typeof RSD === 'number') {
-        kurseviNbs.EUR = RSD;
-      }
-
-      // USD i CHF su izraženi u odnosu na EUR – preračunaj u RSD
-      if (typeof USD === 'number') {
-        kurseviNbs.USD = RSD * USD;
-      }
-      if (typeof CHF === 'number') {
-        kurseviNbs.CHF = RSD * CHF;
-      }
+      kurseviNbs.EUR = data.eurRsd;
+      if (typeof data.usdRsd === 'number') kurseviNbs.USD = data.usdRsd;
+      if (typeof data.chfRsd === 'number') kurseviNbs.CHF = data.chfRsd;
 
       const sada = new Date();
-      kurseviNbs.lastUpdated = sada.toLocaleString('sr-RS') + ' (ECB referentni kurs preko Frankfurter.dev)';
+      kurseviNbs.lastUpdated = `${sada.toLocaleString('sr-RS')} (server – ECB referentni kurs preko Frankfurter.app)`;
 
       // Upis u polja
       if (kursEurInput && kurseviNbs.EUR != null) kursEurInput.value = kurseviNbs.EUR.toFixed(4);
