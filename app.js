@@ -189,6 +189,9 @@
     // Pokušaj da preuzmeš aktuelne kurseve sa javnog API-ja (ECB preko Frankfurter.dev).
     // Ovo NIJE zvanični NBS izvor, ali daje referentne EUR/USD/CHF vrednosti.
     try {
+      if (kursMetaEl) {
+        kursMetaEl.textContent = 'Učitavam kurseve sa Frankfurter.dev...';
+      }
       const resp = await fetch('https://api.frankfurter.dev/v1/latest?base=EUR&symbols=RSD,USD,CHF');
       if (!resp.ok) return;
       const data = await resp.json();
@@ -221,7 +224,9 @@
       sacuvajKurseve();
       if (kursMetaEl) kursMetaEl.textContent = `Automatski učitano: ${kurseviNbs.lastUpdated}`;
     } catch {
-      // Ako ne uspe, ne smetamo korisniku – ostaje ručni unos ili prethodno sačuvano stanje
+      if (kursMetaEl) {
+        kursMetaEl.textContent = 'Automatsko učitavanje kurseva nije uspelo — proveri internet vezu ili unesi kurseve ručno.';
+      }
     }
   }
 
